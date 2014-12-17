@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html moznomarginboxes>
+    <head>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Print text on sticky notes - For Scrum</title>
+
+        <style>
+
+            @font-face {
+                font-family: 'Architects Daughter';
+                font-style: normal;
+                font-weight: 400;
+                src: local('Architects Daughter'),
+                     local('ArchitectsDaughter'),
+                     url('Architects Daughter.woff2') format('woff2'),
+                     url('Architects Daughter.woff') format('woff');
+            }
+
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            html {
+                box-sizing: border-box;
+            }
+
+            *, *:before, *:after {
+                box-sizing: inherit;
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+                font-family: 'Architects Daughter', cursive;
+            }
+
+            @media screen {
+                body {
+                    background: #CCC;
+                }
+            }
+
+            button {
+                font-family: 'Architects Daughter', cursive;
+            }
+
+            @media print {
+                html, body {
+                    width: 210mm;
+                    height: 297mm;
+                }
+            }
+
+            button {
+                font-size: 17px;
+                padding: 5px;
+                border: solid 1px #999;
+                border-radius: 5px;
+            }
+
+            ._clickable-text {
+                text-decoration: underline;
+                cursor: pointer;
+            }
+
+            .main-header {
+                padding: 20px;
+                overflow: hidden;
+            }
+
+            @media print {
+                .main-header {
+                    display: none;
+                }
+            }
+
+            .main-header .main-header-content {
+                margin: 0 auto;
+                width: 210mm;
+            }
+
+            .main-header .options {
+                float: left;
+            }
+
+            .main-header .options h1 {
+                margin: 0;
+                font-size: 24px;
+            }
+
+            .main-header .options .steps {
+                margin: 10px 0 0;
+                padding: 0 0 0 20px;
+                font-size: 18px;
+            }
+
+            .main-header .example {
+                float: right;
+            }
+
+            .page {
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+            }
+
+            .page-navigation {
+                text-align: center;
+            }
+
+            .page-navigation .prev-page-label {
+                display: none;
+            }
+
+            .page-navigation .prev-page-label.show {
+                display: inline;
+            }
+
+            .page-navigation .current-page-label .total-pages-label {
+                display: none;
+            }
+
+            .page-navigation .current-page-label .total-pages-label.show {
+                display: inline;
+            }
+
+            @media print {
+                .page-navigation {
+                    display: none;
+                }
+            }
+
+            .empty-page-template {
+                display: none;
+            }
+
+            @media screen {
+
+                .page {
+                    display: none;
+                    margin: 20px auto;
+                    border: solid 1px #000;
+                    background: #FFF;
+                }
+
+                .page.active {
+                    display: block;
+                }
+
+            }
+
+            .page .notes {
+                padding: 5%;
+                width: 100%;
+                height: 100%;
+            }
+
+            .page .notes table {
+                width: 100%;
+                height: 100%;
+                border-collapse: collapse;
+            }
+
+            .page .notes table tr td .note {
+                position: relative;
+                width: 3in;
+                height: 3in;
+                margin: 0 auto;
+                border: solid 1pt #000;
+            }
+
+            @media print {
+                .pages.type-notes .page .notes table tr td .note {
+                    border-color: rgba(0, 0, 0, 0);
+                }
+            }
+
+            @media screen {
+                .pages.type-notes .page .notes table tr td .note {
+                    background: #EE3;
+                }
+            }
+
+            .page.type-template .notes table tr td .note-content {
+                display: none;
+            }
+
+            .type-template .page .notes table tr td .note-content {
+                display: none;
+            }
+
+            .page .notes table tr td .note .field {
+                position: absolute;
+                overflow: hidden;
+            }
+
+            .page .notes table tr td .note .top-left,
+            .page .notes table tr td .note .top-right,
+            .page .notes table tr td .note .bottom-left,
+            .page .notes table tr td .note .bottom-right {
+                font-size: 0.3in;
+                min-width: 0.4in;
+                height: 0.4in;
+                line-height: 0.4in;
+                padding: 0 0.1in;
+                z-index: 2;
+            }
+
+            .page .notes table tr td .note .top-left {
+                top: 0.1in;
+                left: 0.1in;
+            }
+
+            .page .notes table tr td .note .top-right {
+                top: 0.1in;
+                right: 0.1in;
+            }
+
+            .page .notes table tr td .note .bottom-left {
+                bottom: 0.1in;
+                left: 0.1in;
+            }
+
+            .page .notes table tr td .note .bottom-right {
+                bottom: 0.1in;
+                right: 0.1in;
+            }
+
+            .page .notes table tr td .note .top-center {
+                top: 0.25in;
+                left: 0.54in;
+                width: 1.9in;
+                min-height: 0.4in;
+                max-height: 0.8in;
+                line-height: 0.4in;
+                text-align: center;
+                font-size: 0.2in;
+            }
+
+            .page .notes table tr td .note .middle {
+                left: 0.24in;
+                top: 0.7in;
+                width: 2.5in;
+                height: 1.74in;
+                padding: 0.1in;
+                font-size: 0.2in;
+                z-index: 1;
+            }
+
+            .page .notes table tr td .note .middle.smaller {
+                top: 1.1in;
+                height: 1.34in;
+            }
+
+            @media screen {
+
+                .page .notes table tr td .note .field {
+                    background: rgba(255, 255, 255, 0.1);
+                    border: solid 1px #AA3;
+                    border-radius: 5px;
+                }
+
+            }
+
+        </style>
+
+        <script>
+
+            var currentPageNumber;
+            var totalPages = 0;
+
+            function getPageEl(pageNumber) {
+                return document.querySelector('.pages .page[data-page-number="' + pageNumber + '"]');
+            }
+
+            function addPage(pageNumber) {
+
+                var newPage = document.querySelector('.empty-page-template .page').cloneNode(true);
+                newPage.setAttribute('data-page-number', pageNumber);
+
+                var noteEls = newPage.querySelectorAll('.note');
+
+                for (var i = 0; i < noteEls.length; ++i) {
+                    initNote(noteEls[i]);(noteEls[i]);
+                }
+
+                document.querySelector('.pages').appendChild(newPage);
+
+                return newPage;
+
+            }
+
+            function navToPage(pageNumber) {
+
+                if (pageNumber < currentPageNumber) {
+                    removeEmptyPages();
+                }
+
+                var page = getPageEl(pageNumber);
+                if (!page) page = addPage(pageNumber);
+                page.classList.add('active');
+
+                var currentPage = getPageEl(currentPageNumber);
+                if (currentPage) currentPage.classList.remove('active');
+
+                if (pageNumber > totalPages) {
+                    updateTotalPages(pageNumber);
+                }
+
+                updateCurrentPage(pageNumber);
+
+            }
+
+            function removeEmptyPages() {
+
+                var allPageEls = document.querySelectorAll('.pages .page');
+
+                for (var i = allPageEls.length; i > 0; --i) {
+
+                    var checkPageNumber = i;
+                    if (checkPageNumber < currentPageNumber) break;
+
+                    if (isEmptyPage(allPageEls[checkPageNumber - 1])) {
+                        removePage(checkPageNumber);
+                    } else {
+                        break;
+                    }
+
+                }
+
+            }
+
+            function removePage(pageNumber) {
+
+                var pagesEl = document.querySelector('.pages');
+                var pageEls = pagesEl.querySelectorAll('.page');
+                pagesEl.removeChild(pageEls[pageNumber - 1]);
+                updateTotalPages(totalPages - 1);
+
+            }
+
+            function isEmptyPage(pageEl) {
+
+                var noteEls = pageEl.querySelectorAll('.notes .note');
+                var allNotesEmpty = true;
+
+                for (var i = 0; i < noteEls.length; ++i) {
+                    if (!isEmptyNote(noteEls[i])) {
+                        allNotesEmpty = false;
+                    }
+                }
+
+                return allNotesEmpty;
+
+            }
+
+            function isEmptyNote(noteEl) {
+
+                var fieldEls = noteEl.querySelectorAll('.field');
+                var allFieldsEmpty = true;
+
+                for (var i = 0; i < fieldEls.length; ++i) {
+                    if (fieldEls[i].textContent) {
+                        allFieldsEmpty = false;
+                    }
+                }
+
+                return allFieldsEmpty;
+
+            }
+
+            function updateTotalPages(newTotalPages) {
+
+                totalPages = newTotalPages;
+
+                var totalPagesLabelEl = document.querySelector('.page-navigation .current-page-label .total-pages-label');
+
+                if (totalPages > 1) {
+                    totalPagesLabelEl.classList.add('show');
+                    totalPagesLabelEl.querySelector('.total-pages').innerHTML = totalPages;
+                } else {
+                    totalPagesLabelEl.classList.remove('show');
+                }
+
+            }
+
+            function updateCurrentPage(pageNumber) {
+                currentPageNumber = pageNumber;
+                document.querySelector('.page-navigation .current-page-label .current-page').innerHTML = currentPageNumber;
+                updatePrevPageLabel();
+            }
+
+            function updatePrevPageLabel() {
+
+                var prevPageLabelClassList = document.querySelector('.page-navigation .prev-page-label').classList
+
+                if (currentPageNumber > 1) {
+                    prevPageLabelClassList.add('show');
+                } else {
+                    prevPageLabelClassList.remove('show');
+                }
+
+            }
+
+            function initOptions() {
+
+                var pagesClassList = document.querySelector('.pages').classList;
+                var optionsEl = document.querySelector('.options');
+
+                optionsEl.querySelector('.print-template').addEventListener('click', function() {
+                    pagesClassList.remove('type-notes');
+                    pagesClassList.add('type-template');
+                    setTimeout(window.print, 100);
+                });
+
+                optionsEl.querySelector('.show-notes').addEventListener('click', function() {
+                    pagesClassList.remove('type-template');
+                    pagesClassList.add('type-notes');
+                });
+
+                optionsEl.querySelector('.print').addEventListener('click', function() {
+                    window.print();
+                });
+
+            }
+
+            function initPageNavigation() {
+
+                var pageNavigationEl = document.querySelector('.page-navigation');
+
+                pageNavigationEl.querySelector('.prev-page').addEventListener('click', function() {
+                    navToPage(currentPageNumber - 1);
+                });
+
+                pageNavigationEl.querySelector('.next-page').addEventListener('click', function() {
+                    navToPage(currentPageNumber + 1);
+                });
+
+            }
+
+            function initNote(note) {
+
+                var fieldEls = note.querySelectorAll('.field.single-line');
+                
+                for (var i = 0; i < fieldEls.length; ++i) {
+
+                    fieldEls[i].addEventListener('keydown', function(event) {
+                        if (event.key == 'Enter') {
+                            event.preventDefault();
+                        }
+                    });
+
+                }
+
+                var topCenterFieldEl = note.querySelector('.field.top-center');
+
+                topCenterFieldEl.addEventListener('keyup', function() {
+
+                    var middleFieldEl = note.querySelector('.field.middle');
+
+                    if (topCenterFieldEl.clientHeight > 55) {
+                        middleFieldEl.classList.add('smaller');
+                    } else {
+                        middleFieldEl.classList.remove('smaller');
+                    }
+
+                });
+
+            }
+
+            window.addEventListener('load', function() {
+                initOptions();
+                initPageNavigation();
+                navToPage(1);
+            });
+
+        </script>
+
+    </head>
+    <body>
+
+        <header class="main-header">
+
+            <div class="main-header-content">
+
+                <div class="options">
+
+                    <h1>Print text on sticky notes - For Scrum</h1>
+
+                    <ol class="steps">
+                        <li><span class="_clickable-text print-template">Print one or more templates</span></li>
+                        <li>Stick notes on the templates</li>
+                        <li>Put them back in your printer</li>
+                        <li><span class="_clickable-text show-notes">Enter your desired texts</span></li>
+                        <li><span class="_clickable-text print">Print them!</span></li>
+                    </ol>
+
+                </div>
+
+                <div class="example">
+                    <a href="scrum-note.jpg"><img src="scrum-note.jpg" alt="Lay out SCRUM Cards" height="170"></a>
+                </div>
+
+            </div>
+
+        </header>
+
+        <nav class="page-navigation">
+
+            <span class="prev-page-label">
+                <span class="prev-page _clickable-text">Previous</span>
+                -
+            </span>
+
+            <span class="current-page-label">
+                Page <span class="current-page">1</span>
+                <span class="total-pages-label">
+                    of <span class="total-pages">0</span>
+                </span>
+            </span>
+
+            <span class="next-page-label">
+                -
+                <span class="next-page _clickable-text">Next</span>
+            </span>
+
+        </nav>
+
+        <div class="empty-page-template">
+
+            <section class="page">
+
+                <div class="notes">
+
+                    <table>
+                        <tr>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                            <td>
+                                <section class="note">
+                                    <div class="note-content">
+                                        <div class="field single-line top-left" contentEditable="true"></div>
+                                        <div class="field single-line top-right" contentEditable="true"></div>
+                                        <div class="field top-center" contentEditable="true"></div>
+                                        <div class="field middle" contentEditable="true"></div>
+                                        <div class="field single-line bottom-left" contentEditable="true"></div>
+                                        <div class="field single-line bottom-right" contentEditable="true"></div>
+                                    </div>
+                                </section>
+                            </td>
+                        </tr>
+                    </table>
+
+                </div>
+
+            </section>
+
+        </div>
+
+        <div class="pages type-notes"></div>
+
+        <a href="https://github.com/gitaarik/print-sticky-notes/">
+            <img style="position: absolute; top: 0; right: 0; border: 0;" src="fork-on-github.png" alt="Fork me on GitHub">
+        </a>
+
+    </body>
+</html>
